@@ -1,0 +1,87 @@
+#include <stdio.h>
+
+#define MAX_PROCESSES 10
+#define MAX_RESOURCES 10
+
+int processes, resources;
+int allocation[MAX_PROCESSES][MAX_RESOURCES];
+int max_need[MAX_PROCESSES][MAX_RESOURCES];
+int available[MAX_RESOURCES];
+int marked[MAX_PROCESSES];
+int finished[MAX_PROCESSES];
+
+void initialize() {
+    printf("Enter the number of processes: ");
+    scanf("%d", &processes);
+    printf("Enter the number of resources: ");
+    scanf("%d", &resources);
+
+    printf("Enter the allocation matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            scanf("%d", &allocation[i][j]);
+        }
+    }
+
+    printf("Enter the max need matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            scanf("%d", &max_need[i][j]);
+        }
+    }
+
+    printf("Enter the available resources:\n");
+    for (int i = 0; i < resources; i++) {
+        scanf("%d", &available[i]);
+    }
+}
+
+void detectDeadlock() {
+    for (int i = 0; i < processes; i++) {
+        marked[i] = 0;
+        finished[i] = 0;
+    }
+
+    int marked_count = 0;
+    while (marked_count < processes) {
+        int found = 0;
+        for (int i = 0; i < processes; i++) {
+            if (!finished[i] && !marked[i]) {
+                int can_allocate = 1;
+                for (int j = 0; j < resources; j++) {
+                    if (max_need[i][j] - allocation[i][j] > available[j]) {
+                        can_allocate = 0;
+                        break;
+                    }
+                }
+                if (can_allocate) {
+                    marked[i] = 1;
+                    marked_count++;
+                    found = 1;
+                    for (int j = 0; j < resources; j++) {
+                        available[j] += allocation[i][j];
+                    }
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            printf("Deadlock detected! Processes involved in deadlock:\n");
+            for (int i = 0; i < processes; i++) {
+                if (!finished[i] && !marked[i]) {
+                    printf("Process %d\n", i);
+                }
+            }
+            return;
+        }
+    }
+
+    printf("No deadlock detected.\n");
+}
+
+int main() {
+    initialize();
+    detectDeadlock();
+    return 0;
+}
+
